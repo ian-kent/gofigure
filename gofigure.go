@@ -11,8 +11,10 @@ import (
 	"github.com/ian-kent/gofigure/sources"
 )
 
+// Debug controls log output
+var Debug = true
+
 /* TODO
- * - Convert env/cmd to "sources"
  * - Add file/http sources
  *   - Add "decoders", e.g. json/env/xml
  * - Default value (if gofigure is func()*StructType)
@@ -21,14 +23,17 @@ import (
 
 // Gofiguration represents a parsed struct
 type Gofiguration struct {
-	envPrefix string
-	order     []string
-	fields    map[string]*Gofiguritem
-	flagged   bool
-	s         interface{}
+	order   []string
+	params  map[string]map[string]string
+	fields  map[string]*Gofiguritem
+	flagged bool
+	s       interface{}
 }
 
 func (gfg *Gofiguration) printf(message string, args ...interface{}) {
+	if !Debug {
+		return
+	}
 	log.Printf(message, args...)
 }
 
@@ -71,10 +76,10 @@ func ParseStruct(s interface{}) (*Gofiguration, error) {
 	v := reflect.ValueOf(s).Elem()
 
 	gfg := &Gofiguration{
-		envPrefix: "",
-		order:     DefaultOrder,
-		fields:    make(map[string]*Gofiguritem),
-		s:         s,
+		params: make(map[string]map[string]string),
+		order:  DefaultOrder,
+		fields: make(map[string]*Gofiguritem),
+		s:      s,
 	}
 
 	err := gfg.parseGofigureField(t)
@@ -87,22 +92,81 @@ func ParseStruct(s interface{}) (*Gofiguration, error) {
 	return gfg, nil
 }
 
+func getStructTags(tag string) map[string]string {
+	// http://golang.org/src/pkg/reflect/type.go?s=20885:20906#L747
+	m := make(map[string]string)
+	for tag != "" {
+		// skip leading space
+		i := 0
+		for i < len(tag) && tag[i] == ' ' {
+			i++
+		}
+		tag = tag[i:]
+		if tag == "" {
+			break
+		}
+
+		// scan to colon.
+		// a space or a quote is a syntax error
+		i = 0
+		for i < len(tag) && tag[i] != ' ' && tag[i] != ':' && tag[i] != '"' {
+			i++
+		}
+		if i+1 >= len(tag) || tag[i] != ':' || tag[i+1] != '"' {
+			break
+		}
+		name := string(tag[:i])
+		tag = tag[i+1:]
+
+		// scan quoted string to find value
+		i = 1
+		for i < len(tag) && tag[i] != '"' {
+			if tag[i] == '\\' {
+				i++
+			}
+			i++
+		}
+		if i >= len(tag) {
+			break
+		}
+		qvalue := string(tag[:i+1])
+		tag = tag[i+1:]
+
+		value, _ := strconv.Unquote(qvalue)
+		m[name] = value
+	}
+	return m
+}
+
+var argRe = regexp.MustCompile("([a-z]+)([A-Z][a-z]+)")
+
 func (gfg *Gofiguration) parseGofigureField(t reflect.Type) error {
 	gf, ok := t.FieldByName("gofigure")
 	if ok {
-		gfg.envPrefix = gf.Tag.Get("envPrefix")
-		if ReEnvPrefix.FindAllStringSubmatch(gfg.envPrefix, -1) == nil {
-			return ErrInvalidEnvPrefix
-		}
-		order := gf.Tag.Get("order")
-		if len(order) > 0 {
-			oParts := strings.Split(order, ",")
-			for _, p := range oParts {
-				if _, ok := Sources[p]; !ok {
-					return ErrInvalidOrder
+		tags := getStructTags(string(gf.Tag))
+		for name, value := range tags {
+			if name == "order" {
+				oParts := strings.Split(value, ",")
+				for _, p := range oParts {
+					if _, ok := Sources[p]; !ok {
+						return ErrInvalidOrder
+					}
 				}
+				gfg.order = oParts
+				continue
 			}
-			gfg.order = oParts
+			// Parse orderKey:"value" tags, e.g.
+			// envPrefix, which gets split into
+			//   gfg.params["env"]["prefix"] = "value"
+			// gfg.params["env"] is then passed to
+			// source registered with that key
+			match := argRe.FindStringSubmatch(name)
+			if len(match) > 1 {
+				if _, ok := gfg.params[match[1]]; !ok {
+					gfg.params[match[1]] = make(map[string]string)
+				}
+				gfg.params[match[1]][strings.ToLower(match[2])] = value
+			}
 		}
 	}
 	return nil
@@ -130,9 +194,6 @@ func (gfg *Gofiguration) parseFields(v reflect.Value, t reflect.Type) {
 			for k := range Sources {
 				gfi.keys[k] = tag.Get(k)
 			}
-		} else {
-			// TODO parse CamelCase into CAMEL_CASE and camel-case
-
 		}
 		gfg.fields[f] = gfi
 	}
@@ -145,15 +206,8 @@ func (gfg *Gofiguration) cleanupSources() {
 }
 
 func (gfg *Gofiguration) initSources() error {
-	// FIXME make this more generic - e.g.
-	// any tag starting with source, so " envPrefix" in "gofigure"
-	// would become "prefix" for the "env" source
-	srcConfig := map[string]interface{}{
-		"envPrefix": gfg.envPrefix,
-		"envInfix":  "_",
-	}
 	for _, o := range gfg.order {
-		err := Sources[o].Init(srcConfig)
+		err := Sources[o].Init(gfg.params[o])
 		if err != nil {
 			return err
 		}
@@ -165,7 +219,11 @@ func (gfg *Gofiguration) registerFields() error {
 	for _, gfi := range gfg.fields {
 		for _, o := range gfg.order {
 			gfg.printf("Registering '%s' for source '%s'", gfi.field, o)
-			err := Sources[o].Register(gfi.keys[o], "", gfi.goField.Type)
+			kn := gfi.field
+			if k, ok := gfi.keys[o]; ok {
+				kn = k
+			}
+			err := Sources[o].Register(kn, "", gfi.goField.Type)
 			if err != nil {
 				return err
 			}

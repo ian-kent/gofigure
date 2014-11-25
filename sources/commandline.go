@@ -13,7 +13,7 @@ type CommandLine struct {
 }
 
 // Init is called at the start of a new struct
-func (cl *CommandLine) Init(args map[string]interface{}) error {
+func (cl *CommandLine) Init(args map[string]string) error {
 	cl.flags = make(map[string]*string)
 	cl.oldCl = flag.CommandLine
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)

@@ -16,7 +16,7 @@ var (
 // environment, command line, file, http etc
 type Source interface {
 	// Init is called at the start of a new struct
-	Init(args map[string]interface{}) error
+	Init(args map[string]string) error
 	// Cleanup is called at the end of parsing
 	Cleanup()
 	// Register is called to register each struct field
