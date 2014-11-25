@@ -67,12 +67,12 @@ func TestParseStruct(t *testing.T) {
 		info, e := ParseStruct(&MyConfigFoo{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
-		So(info.envPrefix, ShouldEqual, "FOO")
+		So(info.params["env"]["prefix"], ShouldEqual, "FOO")
 
 		info, e = ParseStruct(&MyConfigBar{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
-		So(info.envPrefix, ShouldEqual, "BAR")
+		So(info.params["env"]["prefix"], ShouldEqual, "BAR")
 	})
 
 	Convey("ParseStruct should read gofigure order tag correctly", t, func() {
@@ -91,13 +91,6 @@ func TestParseStruct(t *testing.T) {
 		info, e := ParseStruct(&MyConfigBaz{})
 		So(e, ShouldNotBeNil)
 		So(e, ShouldEqual, ErrInvalidOrder)
-		So(info, ShouldBeNil)
-	})
-
-	Convey("Invalid envPrefix should return error", t, func() {
-		info, e := ParseStruct(&MyConfigBay{})
-		So(e, ShouldNotBeNil)
-		So(e, ShouldEqual, ErrInvalidEnvPrefix)
 		So(info, ShouldBeNil)
 	})
 
