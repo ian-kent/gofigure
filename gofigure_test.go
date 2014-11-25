@@ -160,7 +160,7 @@ func TestGofigure(t *testing.T) {
 
 	Convey("Gofigure should support environment variables", t, func() {
 		os.Args = []string{"gofigure"}
-		os.Setenv("BIND_ADDR", "bindaddr")
+		os.Setenv("FOO_BIND_ADDR", "bindaddr")
 		var cfg MyConfigFoo
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -170,7 +170,7 @@ func TestGofigure(t *testing.T) {
 
 	Convey("Gofigure should preserve order", t, func() {
 		os.Args = []string{"gofigure", "-bind-addr", "abc"}
-		os.Setenv("BIND_ADDR", "def")
+		os.Setenv("FOO_BIND_ADDR", "def")
 		var cfg MyConfigFoo
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -178,7 +178,7 @@ func TestGofigure(t *testing.T) {
 		So(cfg.BindAddr, ShouldEqual, "abc")
 
 		os.Args = []string{"gofigure", "-remote-addr", "abc"}
-		os.Setenv("REMOTE_ADDR", "def")
+		os.Setenv("BAR_REMOTE_ADDR", "def")
 		var cfg2 MyConfigBar
 		err = Gofigure(&cfg2)
 		So(err, ShouldBeNil)
