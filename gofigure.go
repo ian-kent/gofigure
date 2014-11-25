@@ -145,8 +145,15 @@ func (gfg *Gofiguration) cleanupSources() {
 }
 
 func (gfg *Gofiguration) initSources() error {
+	// FIXME make this more generic - e.g.
+	// any tag starting with source, so " envPrefix" in "gofigure"
+	// would become "prefix" for the "env" source
+	srcConfig := map[string]interface{}{
+		"envPrefix": gfg.envPrefix,
+		"envInfix":  "_",
+	}
 	for _, o := range gfg.order {
-		err := Sources[o].Init()
+		err := Sources[o].Init(srcConfig)
 		if err != nil {
 			return err
 		}
