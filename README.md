@@ -31,6 +31,20 @@ func main() {
 }
 ```
 
+### gofigure field
+
+The gofigure field is used to configure Gofigure.
+
+The `order` tag is used to set configuration source order, e.g.
+environment variables first then command line options second.
+
+Any field matching `camelCase` format will be parsed into `camel`
+and `case`, and passed to the source matching `camel`.
+
+For example, the `envPrefix` field is split into `env` and `prefix`,
+and the tag value is passed to the environment variable source as
+the `prefix` parameter.
+
 ### Licence
 
 Copyright ©‎ 2014, Ian Kent (http://www.iankent.eu).
