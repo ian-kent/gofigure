@@ -40,7 +40,7 @@ func (env *Environment) Init(args map[string]string) error {
 }
 
 // Register is called to register each struct field
-func (env *Environment) Register(key, defaultValue string, t reflect.Type) error {
+func (env *Environment) Register(key, defaultValue string, params map[string]string, t reflect.Type) error {
 	env.fields[camelToSnake(key)] = defaultValue
 	return nil
 }

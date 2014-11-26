@@ -20,7 +20,7 @@ type Source interface {
 	// Cleanup is called at the end of parsing
 	Cleanup()
 	// Register is called to register each struct field
-	Register(key, defaultValue string, t reflect.Type) error
+	Register(key, defaultValue string, params map[string]string, t reflect.Type) error
 	// Get is called to retrieve a key value
 	// - FIXME could use interface{} and maintain types, e.g. json?
 	Get(key string, overrideDefault *string) (string, error)

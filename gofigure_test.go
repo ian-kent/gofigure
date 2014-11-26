@@ -8,17 +8,20 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+// TODO
+// - Test flagDesc
+
 // MyConfigFoo is a basic test struct
 type MyConfigFoo struct {
-	gofigure interface{} `envPrefix:"FOO" order:"env,cmd"`
-	BindAddr string      `env:"BIND_ADDR" cmd:"bind-addr"`
+	gofigure interface{} `envPrefix:"FOO" order:"env,flag"`
+	BindAddr string      `env:"BIND_ADDR" flag:"bind-addr"`
 }
 
 // MyConfigBar is a basic test struct with multiple fields
 type MyConfigBar struct {
-	gofigure   interface{} `envPrefix:"BAR" order:"cmd,env"`
-	RemoteAddr string      `env:"REMOTE_ADDR" cmd:"remote-addr"`
-	LocalAddr  string      `env:"LOCAL_ADDR" cmd:"local-addr"`
+	gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
+	RemoteAddr string      `env:"REMOTE_ADDR" flag:"remote-addr"`
+	LocalAddr  string      `env:"LOCAL_ADDR" flag:"local-addr"`
 }
 
 // MyConfigBaz is used to test invalid order values
@@ -79,12 +82,12 @@ func TestParseStruct(t *testing.T) {
 		info, e := ParseStruct(&MyConfigFoo{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
-		So(info.order, ShouldResemble, []string{"env", "cmd"})
+		So(info.order, ShouldResemble, []string{"env", "flag"})
 
 		info, e = ParseStruct(&MyConfigBar{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
-		So(info.order, ShouldResemble, []string{"cmd", "env"})
+		So(info.order, ShouldResemble, []string{"flag", "env"})
 	})
 
 	Convey("Invalid order should return error", t, func() {
@@ -103,7 +106,7 @@ func TestParseStruct(t *testing.T) {
 		So(ok, ShouldEqual, true)
 		So(info.fields["BindAddr"].field, ShouldEqual, "BindAddr")
 		So(info.fields["BindAddr"].keys["env"], ShouldEqual, "BIND_ADDR")
-		So(info.fields["BindAddr"].keys["cmd"], ShouldEqual, "bind-addr")
+		So(info.fields["BindAddr"].keys["flag"], ShouldEqual, "bind-addr")
 		So(info.fields["BindAddr"].goField, ShouldNotBeNil)
 		So(info.fields["BindAddr"].goField.Type.Kind(), ShouldEqual, reflect.String)
 		So(info.fields["BindAddr"].goValue, ShouldNotBeNil)
@@ -116,7 +119,7 @@ func TestParseStruct(t *testing.T) {
 		So(ok, ShouldEqual, true)
 		So(info.fields["RemoteAddr"].field, ShouldEqual, "RemoteAddr")
 		So(info.fields["RemoteAddr"].keys["env"], ShouldEqual, "REMOTE_ADDR")
-		So(info.fields["RemoteAddr"].keys["cmd"], ShouldEqual, "remote-addr")
+		So(info.fields["RemoteAddr"].keys["flag"], ShouldEqual, "remote-addr")
 		So(info.fields["RemoteAddr"].goField, ShouldNotBeNil)
 		So(info.fields["RemoteAddr"].goField.Type.Kind(), ShouldEqual, reflect.String)
 		So(info.fields["RemoteAddr"].goValue, ShouldNotBeNil)
@@ -124,7 +127,7 @@ func TestParseStruct(t *testing.T) {
 		So(ok, ShouldEqual, true)
 		So(info.fields["LocalAddr"].field, ShouldEqual, "LocalAddr")
 		So(info.fields["LocalAddr"].keys["env"], ShouldEqual, "LOCAL_ADDR")
-		So(info.fields["LocalAddr"].keys["cmd"], ShouldEqual, "local-addr")
+		So(info.fields["LocalAddr"].keys["flag"], ShouldEqual, "local-addr")
 		So(info.fields["LocalAddr"].goField, ShouldNotBeNil)
 		So(info.fields["LocalAddr"].goField.Type.Kind(), ShouldEqual, reflect.String)
 		So(info.fields["LocalAddr"].goValue, ShouldNotBeNil)

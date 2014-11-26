@@ -19,10 +19,10 @@ import (
 // Define a struct
 type config struct {
 	// Add a gofigure field to set envPrefix and order
-	gofigure interface{} `envPrefix:"BAR" order:"cmd,env"`
+	gofigure interface{} `envPrefix:"BAR" order:"flag,env"`
 	// Define some configuration items
-	RemoteAddr string `env:"REMOTE_ADDR" cmd:"remote-addr"`
-	LocalAddr  string `env:"LOCAL_ADDR" cmd:"local-addr"`
+	RemoteAddr string `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
+	LocalAddr  string `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
 }
 
 func main() {

@@ -26,7 +26,7 @@ func (cl *CommandLine) Cleanup() {
 }
 
 // Register is called to register each struct field
-func (cl *CommandLine) Register(key, defaultValue string, t reflect.Type) error {
+func (cl *CommandLine) Register(key, defaultValue string, params map[string]string, t reflect.Type) error {
 	if _, ok := cl.flags[key]; ok {
 		return ErrKeyExists
 	}
@@ -34,7 +34,12 @@ func (cl *CommandLine) Register(key, defaultValue string, t reflect.Type) error 
 	// TODO use typed calls instead of StringVar
 	val := defaultValue
 	cl.flags[key] = &val
-	flag.StringVar(&val, key, defaultValue, "TODO description")
+
+	// TODO validate description in some way?
+	desc := params["flagDesc"]
+
+	flag.StringVar(&val, key, defaultValue, desc)
+
 	return nil
 }
 
