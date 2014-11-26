@@ -245,6 +245,12 @@ func (gfg *Gofiguration) populateStruct() error {
 				return err
 			}
 
+			// FIXME returns ErrUnsupportedFieldType
+			// but should it...
+			// Two choices:
+			// - ignore errors so other fields are parsed
+			// - keep errors as "fatal", but support "unexported" fields
+
 			switch gfi.goField.Type.Kind() {
 			case reflect.Invalid:
 				return ErrUnsupportedFieldType
@@ -261,31 +267,94 @@ func (gfg *Gofiguration) populateStruct() error {
 				}
 				gfi.goValue.SetInt(i)
 			case reflect.Int8:
+				i, err := strconv.ParseInt(val, 10, 8)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetInt(i)
 			case reflect.Int16:
+				i, err := strconv.ParseInt(val, 10, 16)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetInt(i)
 			case reflect.Int32:
+				i, err := strconv.ParseInt(val, 10, 32)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetInt(i)
 			case reflect.Int64:
+				i, err := strconv.ParseInt(val, 10, 64)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetInt(i)
 			case reflect.Uint:
+				i, err := strconv.ParseUint(val, 10, 64)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetUint(i)
 			case reflect.Uint8:
+				i, err := strconv.ParseUint(val, 10, 8)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetUint(i)
 			case reflect.Uint16:
+				i, err := strconv.ParseUint(val, 10, 16)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetUint(i)
 			case reflect.Uint32:
+				i, err := strconv.ParseUint(val, 10, 32)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetUint(i)
 			case reflect.Uint64:
+				i, err := strconv.ParseUint(val, 10, 64)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetUint(i)
 			case reflect.Uintptr:
+				return ErrUnsupportedFieldType
 			case reflect.Float32:
+				f, err := strconv.ParseFloat(val, 32)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetFloat(f)
 			case reflect.Float64:
+				f, err := strconv.ParseFloat(val, 64)
+				if err != nil {
+					return err
+				}
+				gfi.goValue.SetFloat(f)
 			case reflect.Complex64:
+				return ErrUnsupportedFieldType
 			case reflect.Complex128:
+				return ErrUnsupportedFieldType
 			case reflect.Array:
+				// TODO
 			case reflect.Chan:
 				return ErrUnsupportedFieldType
 			case reflect.Func:
 				return ErrUnsupportedFieldType
 			case reflect.Interface:
 			case reflect.Map:
+				// TODO
 			case reflect.Ptr:
+				return ErrUnsupportedFieldType
 			case reflect.Slice:
+				// TODO
 			case reflect.String:
 				gfi.goValue.SetString(val)
 			case reflect.Struct:
+				// TODO
 			case reflect.UnsafePointer:
 				return ErrUnsupportedFieldType
 			default:
