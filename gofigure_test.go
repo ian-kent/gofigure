@@ -9,7 +9,8 @@ import (
 )
 
 // TODO
-// - Test flagDesc
+// - flagDesc
+// - flag and env default keys
 
 // MyConfigFoo is a basic test struct
 type MyConfigFoo struct {
@@ -48,11 +49,8 @@ type MyConfigFull struct {
 	Uint16Field      uint16
 	Uint32Field      uint32
 	Uint64Field      uint64
-	UintptrField     uintptr
 	Float32Field     float32
 	Float64Field     float64
-	Complex64Field   complex64
-	Complex128Field  complex128
 	ArrayIntField    []int
 	ArrayStringField []string
 }
@@ -136,6 +134,7 @@ func TestParseStruct(t *testing.T) {
 
 func TestGofigure(t *testing.T) {
 	Convey("Gofigure should set field values", t, func() {
+		os.Clearenv()
 		os.Args = []string{"gofigure", "-bind-addr", "abcdef"}
 		var cfg MyConfigFoo
 		err := Gofigure(&cfg)
@@ -145,6 +144,7 @@ func TestGofigure(t *testing.T) {
 	})
 
 	Convey("Gofigure should set multiple field values", t, func() {
+		os.Clearenv()
 		os.Args = []string{"gofigure", "-remote-addr", "foo", "-local-addr", "bar"}
 		var cfg2 MyConfigBar
 		err := Gofigure(&cfg2)
@@ -155,6 +155,7 @@ func TestGofigure(t *testing.T) {
 	})
 
 	Convey("Gofigure should support environment variables", t, func() {
+		os.Clearenv()
 		os.Args = []string{"gofigure"}
 		os.Setenv("FOO_BIND_ADDR", "bindaddr")
 		var cfg MyConfigFoo
@@ -165,6 +166,7 @@ func TestGofigure(t *testing.T) {
 	})
 
 	Convey("Gofigure should preserve order", t, func() {
+		os.Clearenv()
 		os.Args = []string{"gofigure", "-bind-addr", "abc"}
 		os.Setenv("FOO_BIND_ADDR", "def")
 		var cfg MyConfigFoo
@@ -173,6 +175,7 @@ func TestGofigure(t *testing.T) {
 		So(cfg, ShouldNotBeNil)
 		So(cfg.BindAddr, ShouldEqual, "abc")
 
+		os.Clearenv()
 		os.Args = []string{"gofigure", "-remote-addr", "abc"}
 		os.Setenv("BAR_REMOTE_ADDR", "def")
 		var cfg2 MyConfigBar
@@ -180,5 +183,232 @@ func TestGofigure(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(cfg2, ShouldNotBeNil)
 		So(cfg2.RemoteAddr, ShouldEqual, "def")
+	})
+}
+
+func TestBoolField(t *testing.T) {
+	Convey("Can set a bool field to true (flag)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+			"-bool-field", "true",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.BoolField, ShouldEqual, true)
+	})
+
+	Convey("Can set a bool field to false (flag)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+			"-bool-field", "false",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.BoolField, ShouldEqual, false)
+	})
+
+	Convey("Can set a bool field to true (env)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+		}
+		os.Setenv("BOOL_FIELD", "true")
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.BoolField, ShouldEqual, true)
+	})
+
+	Convey("Can set a bool field to false (env)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+		}
+		os.Setenv("BOOL_FIELD", "false")
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.BoolField, ShouldEqual, false)
+	})
+
+	Convey("Not setting a bool field gives false", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.BoolField, ShouldEqual, false)
+	})
+}
+
+func TestIntField(t *testing.T) {
+	Convey("Can set int fields (flag)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+			"-int-field", "123",
+			"-int8-field", "2",
+			"-int16-field", "10",
+			"-int32-field", "33",
+			"-int64-field", "81",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.IntField, ShouldEqual, 123)
+		So(cfg.Int8Field, ShouldEqual, 2)
+		So(cfg.Int16Field, ShouldEqual, 10)
+		So(cfg.Int32Field, ShouldEqual, 33)
+		So(cfg.Int64Field, ShouldEqual, 81)
+	})
+
+	Convey("Can set int fields to negative values (flag)", t, func() {
+		os.Args = []string{
+			"gofigure",
+			"-int-field", "-123",
+			"-int8-field", "-2",
+			"-int16-field", "-10",
+			"-int32-field", "-33",
+			"-int64-field", "-81",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.IntField, ShouldEqual, -123)
+		So(cfg.Int8Field, ShouldEqual, -2)
+		So(cfg.Int16Field, ShouldEqual, -10)
+		So(cfg.Int32Field, ShouldEqual, -33)
+		So(cfg.Int64Field, ShouldEqual, -81)
+	})
+
+	Convey("Can set int fields (env)", t, func() {
+		os.Clearenv()
+		os.Setenv("INT_FIELD", "123")
+		os.Setenv("INT8_FIELD", "2")
+		os.Setenv("INT16_FIELD", "10")
+		os.Setenv("INT32_FIELD", "33")
+		os.Setenv("INT64_FIELD", "81")
+		os.Args = []string{
+			"gofigure",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.IntField, ShouldEqual, 123)
+		So(cfg.Int8Field, ShouldEqual, 2)
+		So(cfg.Int16Field, ShouldEqual, 10)
+		So(cfg.Int32Field, ShouldEqual, 33)
+		So(cfg.Int64Field, ShouldEqual, 81)
+	})
+
+	Convey("Can set int fields to negative values (env)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+		}
+		os.Setenv("INT_FIELD", "-123")
+		os.Setenv("INT8_FIELD", "-2")
+		os.Setenv("INT16_FIELD", "-10")
+		os.Setenv("INT32_FIELD", "-33")
+		os.Setenv("INT64_FIELD", "-81")
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.IntField, ShouldEqual, -123)
+		So(cfg.Int8Field, ShouldEqual, -2)
+		So(cfg.Int16Field, ShouldEqual, -10)
+		So(cfg.Int32Field, ShouldEqual, -33)
+		So(cfg.Int64Field, ShouldEqual, -81)
+	})
+
+	Convey("Unset int fields are 0", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.IntField, ShouldEqual, 0)
+		So(cfg.Int8Field, ShouldEqual, 0)
+		So(cfg.Int16Field, ShouldEqual, 0)
+		So(cfg.Int32Field, ShouldEqual, 0)
+		So(cfg.Int64Field, ShouldEqual, 0)
+	})
+}
+
+func TestUintField(t *testing.T) {
+	Convey("Can set uint fields (flag)", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+			"-uint-field", "123",
+			"-uint8-field", "2",
+			"-uint16-field", "10",
+			"-uint32-field", "33",
+			"-uint64-field", "81",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.UintField, ShouldEqual, 123)
+		So(cfg.Uint8Field, ShouldEqual, 2)
+		So(cfg.Uint16Field, ShouldEqual, 10)
+		So(cfg.Uint32Field, ShouldEqual, 33)
+		So(cfg.Uint64Field, ShouldEqual, 81)
+	})
+
+	Convey("Can set int fields (env)", t, func() {
+		os.Clearenv()
+		os.Setenv("UINT_FIELD", "123")
+		os.Setenv("UINT8_FIELD", "2")
+		os.Setenv("UINT16_FIELD", "10")
+		os.Setenv("UINT32_FIELD", "33")
+		os.Setenv("UINT64_FIELD", "81")
+		os.Args = []string{
+			"gofigure",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.UintField, ShouldEqual, 123)
+		So(cfg.Uint8Field, ShouldEqual, 2)
+		So(cfg.Uint16Field, ShouldEqual, 10)
+		So(cfg.Uint32Field, ShouldEqual, 33)
+		So(cfg.Uint64Field, ShouldEqual, 81)
+	})
+
+	Convey("Unset uint fields are 0", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.UintField, ShouldEqual, 0)
+		So(cfg.Uint8Field, ShouldEqual, 0)
+		So(cfg.Uint16Field, ShouldEqual, 0)
+		So(cfg.Uint32Field, ShouldEqual, 0)
+		So(cfg.Uint64Field, ShouldEqual, 0)
 	})
 }

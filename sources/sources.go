@@ -2,8 +2,27 @@ package sources
 
 import (
 	"errors"
+	"log"
 	"reflect"
 )
+
+// Logger is called for each log message. If nil,
+// log.Printf will be called instead.
+var Logger func(message string, args ...interface{})
+
+// Debug controls sources debug output
+var Debug = false
+
+func printf(message string, args ...interface{}) {
+	if !Debug {
+		return
+	}
+	if Logger != nil {
+		Logger(message, args...)
+	} else {
+		log.Printf(message, args...)
+	}
+}
 
 var (
 	// ErrKeyExists should be returned when the key has already

@@ -27,6 +27,8 @@ func camelToSnake(camel string) (snake string) {
 // Init is called at the start of a new struct
 func (env *Environment) Init(args map[string]string) error {
 	env.infix = "_"
+	env.prefix = ""
+	env.fields = make(map[string]string)
 
 	if envPrefix, ok := args["prefix"]; ok {
 		env.prefix = envPrefix
@@ -35,7 +37,6 @@ func (env *Environment) Init(args map[string]string) error {
 		env.infix = envInfix
 	}
 
-	env.fields = make(map[string]string)
 	return nil
 }
 
@@ -47,6 +48,7 @@ func (env *Environment) Register(key, defaultValue string, params map[string]str
 
 // Get is called to retrieve a key value
 func (env *Environment) Get(key string, overrideDefault *string) (string, error) {
+	key = camelToSnake(key)
 	def := env.fields[key]
 	if overrideDefault != nil {
 		def = *overrideDefault

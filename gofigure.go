@@ -13,6 +13,17 @@ import (
 
 // Debug controls log output
 var Debug = false
+var _ = func() {
+	sources.Debug = Debug
+	sources.Logger = printf
+}
+
+func printf(message string, args ...interface{}) {
+	if !Debug {
+		return
+	}
+	log.Printf(message, args...)
+}
 
 /* TODO
  * - Add file/http sources
@@ -31,10 +42,7 @@ type Gofiguration struct {
 }
 
 func (gfg *Gofiguration) printf(message string, args ...interface{}) {
-	if !Debug {
-		return
-	}
-	log.Printf(message, args...)
+	printf(message, args...)
 }
 
 // Gofiguritem represents a single struct field
@@ -216,11 +224,11 @@ func (gfg *Gofiguration) initSources() error {
 func (gfg *Gofiguration) registerFields() error {
 	for _, gfi := range gfg.fields {
 		for _, o := range gfg.order {
-			gfg.printf("Registering '%s' for source '%s'", gfi.field, o)
 			kn := gfi.field
 			if k, ok := gfi.keys[o]; ok {
 				kn = k
 			}
+			gfg.printf("Registering '%s' for source '%s' with key '%s'", gfi.field, o, kn)
 			err := Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
 			if err != nil {
 				return err
@@ -228,6 +236,13 @@ func (gfg *Gofiguration) registerFields() error {
 		}
 	}
 	return nil
+}
+
+func numVal(i string) string {
+	if len(i) == 0 {
+		return "0"
+	}
+	return i
 }
 
 func (gfg *Gofiguration) populateStruct() error {
@@ -238,9 +253,13 @@ func (gfg *Gofiguration) populateStruct() error {
 				var s = ""
 				prevVal = &s
 			}
-			val, err := Sources[o].Get(gfi.keys[o], prevVal)
+			kn := gfi.field
+			if k, ok := gfi.keys[o]; ok {
+				kn = k
+			}
+			val, err := Sources[o].Get(kn, prevVal)
 			prevVal = &val
-			gfg.printf("Got value '%s' from source '%s' for key '%s'", val, gfi.field, gfi.keys[o])
+			gfg.printf("Got value '%s' from source '%s' for key '%s'", val, o, gfi.field)
 			if err != nil {
 				return err
 			}
@@ -255,67 +274,71 @@ func (gfg *Gofiguration) populateStruct() error {
 			case reflect.Invalid:
 				return ErrUnsupportedFieldType
 			case reflect.Bool:
+				if len(val) == 0 {
+					gfg.printf("Setting bool value to false")
+					val = "false"
+				}
 				b, err := strconv.ParseBool(val)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetBool(b)
 			case reflect.Int:
-				i, err := strconv.ParseInt(val, 10, 64)
+				i, err := strconv.ParseInt(numVal(val), 10, 64)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetInt(i)
 			case reflect.Int8:
-				i, err := strconv.ParseInt(val, 10, 8)
+				i, err := strconv.ParseInt(numVal(val), 10, 8)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetInt(i)
 			case reflect.Int16:
-				i, err := strconv.ParseInt(val, 10, 16)
+				i, err := strconv.ParseInt(numVal(val), 10, 16)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetInt(i)
 			case reflect.Int32:
-				i, err := strconv.ParseInt(val, 10, 32)
+				i, err := strconv.ParseInt(numVal(val), 10, 32)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetInt(i)
 			case reflect.Int64:
-				i, err := strconv.ParseInt(val, 10, 64)
+				i, err := strconv.ParseInt(numVal(val), 10, 64)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetInt(i)
 			case reflect.Uint:
-				i, err := strconv.ParseUint(val, 10, 64)
+				i, err := strconv.ParseUint(numVal(val), 10, 64)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetUint(i)
 			case reflect.Uint8:
-				i, err := strconv.ParseUint(val, 10, 8)
+				i, err := strconv.ParseUint(numVal(val), 10, 8)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetUint(i)
 			case reflect.Uint16:
-				i, err := strconv.ParseUint(val, 10, 16)
+				i, err := strconv.ParseUint(numVal(val), 10, 16)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetUint(i)
 			case reflect.Uint32:
-				i, err := strconv.ParseUint(val, 10, 32)
+				i, err := strconv.ParseUint(numVal(val), 10, 32)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetUint(i)
 			case reflect.Uint64:
-				i, err := strconv.ParseUint(val, 10, 64)
+				i, err := strconv.ParseUint(numVal(val), 10, 64)
 				if err != nil {
 					return err
 				}
@@ -323,13 +346,13 @@ func (gfg *Gofiguration) populateStruct() error {
 			case reflect.Uintptr:
 				return ErrUnsupportedFieldType
 			case reflect.Float32:
-				f, err := strconv.ParseFloat(val, 32)
+				f, err := strconv.ParseFloat(numVal(val), 32)
 				if err != nil {
 					return err
 				}
 				gfi.goValue.SetFloat(f)
 			case reflect.Float64:
-				f, err := strconv.ParseFloat(val, 64)
+				f, err := strconv.ParseFloat(numVal(val), 64)
 				if err != nil {
 					return err
 				}
