@@ -16,9 +16,9 @@ package main
 import "github.com/ian-kent/gofigure"
 
 type config struct {
-  gofigure interface{} `envPrefix:"MYAPP" order:"cmd,env"`
-  RemoteAddr string `env:"REMOTE_ADDR" cmd:"remote-addr"`
-  LocalAddr  string `env:"LOCAL_ADDR" cmd:"local-addr"`
+  gofigure interface{} `envPrefix:"BAR" order:"flag,env"`
+  RemoteAddr string `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
+  LocalAddr  string `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
 }
 
 func main() {
