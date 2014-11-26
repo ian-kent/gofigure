@@ -12,7 +12,7 @@ import (
 )
 
 // Debug controls log output
-var Debug = true
+var Debug = false
 
 /* TODO
  * - Add file/http sources
@@ -47,12 +47,12 @@ type Gofiguritem struct {
 
 // Sources contains a map of struct field tag names to source implementation
 var Sources = map[string]sources.Source{
-	"env": &sources.Environment{},
-	"cmd": &sources.CommandLine{},
+	"env":  &sources.Environment{},
+	"flag": &sources.CommandLine{},
 }
 
 // DefaultOrder sets the default order used
-var DefaultOrder = []string{"env", "cmd"}
+var DefaultOrder = []string{"env", "flag"}
 
 var (
 	// ReEnvPrefix is used to restrict envPrefix config values
@@ -191,9 +191,7 @@ func (gfg *Gofiguration) parseFields(v reflect.Value, t reflect.Type) {
 		}
 		tag := t.Field(i).Tag
 		if len(tag) > 0 {
-			for k := range Sources {
-				gfi.keys[k] = tag.Get(k)
-			}
+			gfi.keys = getStructTags(string(tag))
 		}
 		gfg.fields[f] = gfi
 	}
@@ -223,7 +221,7 @@ func (gfg *Gofiguration) registerFields() error {
 			if k, ok := gfi.keys[o]; ok {
 				kn = k
 			}
-			err := Sources[o].Register(kn, "", gfi.goField.Type)
+			err := Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
 			if err != nil {
 				return err
 			}
