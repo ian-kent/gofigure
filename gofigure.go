@@ -384,6 +384,97 @@ func (gfi *Gofiguritem) populateSliceType(order []string) error {
 					printf("Appending string value '%s' to slice", s)
 					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(s)))
 				}
+			case reflect.Int:
+				for _, s := range val {
+					printf("Appending int value '%s' to slice", s)
+					i, err := strconv.ParseInt(numVal(s), 10, 64)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(int(i))))
+				}
+			case reflect.Int8:
+				for _, s := range val {
+					printf("Appending int8 value '%s' to slice", s)
+					i, err := strconv.ParseInt(numVal(s), 10, 8)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(int8(i))))
+				}
+			case reflect.Int16:
+				for _, s := range val {
+					printf("Appending int16 value '%s' to slice", s)
+					i, err := strconv.ParseInt(numVal(s), 10, 16)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(int16(i))))
+				}
+			case reflect.Int32:
+				for _, s := range val {
+					printf("Appending int32 value '%s' to slice", s)
+					i, err := strconv.ParseInt(numVal(s), 10, 32)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(int32(i))))
+				}
+			case reflect.Int64:
+				for _, s := range val {
+					printf("Appending int64 value '%s' to slice", s)
+					i, err := strconv.ParseInt(numVal(s), 10, 64)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(int64(i))))
+				}
+			case reflect.Uint:
+				for _, s := range val {
+					printf("Appending uint value '%s' to slice", s)
+					i, err := strconv.ParseUint(numVal(s), 10, 64)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(uint(i))))
+				}
+			case reflect.Uint8:
+				for _, s := range val {
+					printf("Appending uint8 value '%s' to slice", s)
+					i, err := strconv.ParseUint(numVal(s), 10, 8)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(uint8(i))))
+				}
+			case reflect.Uint16:
+				for _, s := range val {
+					printf("Appending uint16 value '%s' to slice", s)
+					i, err := strconv.ParseUint(numVal(s), 10, 16)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(uint16(i))))
+				}
+			case reflect.Uint32:
+				for _, s := range val {
+					printf("Appending uint32 value '%s' to slice", s)
+					i, err := strconv.ParseUint(numVal(s), 10, 32)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(uint32(i))))
+				}
+			case reflect.Uint64:
+				for _, s := range val {
+					printf("Appending uint64 value '%s' to slice", s)
+					i, err := strconv.ParseUint(numVal(s), 10, 64)
+					if err != nil {
+						return err
+					}
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(uint64(i))))
+				}
+			// TODO floats
 			default:
 				//return ErrUnsupportedFieldType
 			}
@@ -414,9 +505,11 @@ func (gfg *Gofiguration) populateStruct() error {
 		case reflect.UnsafePointer:
 			return ErrUnsupportedFieldType
 		case reflect.Interface:
-		// TODO
+			// TODO
+			return ErrUnsupportedFieldType
 		case reflect.Map:
-		// TODO
+			// TODO
+			return ErrUnsupportedFieldType
 		case reflect.Slice:
 			printf("Calling populateSliceType")
 			err := gfi.populateSliceType(gfg.order)
@@ -424,9 +517,11 @@ func (gfg *Gofiguration) populateStruct() error {
 				return err
 			}
 		case reflect.Struct:
-		// TODO
+			// TODO
+			return ErrUnsupportedFieldType
 		case reflect.Array:
 			// TODO
+			return ErrUnsupportedFieldType
 		default:
 			printf("Calling populateDefaultType")
 			err := gfi.populateDefaultType(gfg.order)

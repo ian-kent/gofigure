@@ -431,5 +431,22 @@ func TestArrayField(t *testing.T) {
 		So(cfg, ShouldNotBeNil)
 		So(cfg.ArrayStringField, ShouldNotBeNil)
 		So(len(cfg.ArrayStringField), ShouldEqual, 2)
+		So(cfg.ArrayStringField, ShouldResemble, []string{"foo", "bar"})
+	})
+
+	Convey("Int array should work", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+			"-array-int-field", "1",
+			"-array-int-field", "2",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.ArrayIntField, ShouldNotBeNil)
+		So(len(cfg.ArrayIntField), ShouldEqual, 2)
+		So(cfg.ArrayIntField, ShouldResemble, []int{1, 2})
 	})
 }
