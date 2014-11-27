@@ -61,6 +61,24 @@ func (env *Environment) Get(key string, overrideDefault *string) (string, error)
 	return val.(string), err
 }
 
+// GetArray is called to retrieve an array value
+func (env *Environment) GetArray(key string, overrideDefault *[]string) ([]string, error) {
+	// This doesn't actually support arrays... yet!
+	// It just proxies to Environment.Get()
+	var oD *string
+	if overrideDefault != nil {
+		if len(*overrideDefault) > 0 {
+			ovr := (*overrideDefault)[0]
+			oD = &ovr
+		}
+	}
+	v, e := env.Get(key, oD)
+	if len(v) > 0 {
+		return []string{v}, e
+	}
+	return []string{}, e
+}
+
 // Cleanup is called at the end of parsing
 func (env *Environment) Cleanup() {
 

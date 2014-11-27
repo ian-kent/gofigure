@@ -356,8 +356,46 @@ func (gfi *Gofiguritem) populateDefaultType(order []string) error {
 	return nil
 }
 
+func (gfi *Gofiguritem) populateSliceType(order []string) error {
+	var prevVal *[]string
+
+	for _, source := range order {
+		kn := gfi.field
+		if k, ok := gfi.keys[source]; ok {
+			kn = k
+		}
+
+		printf("Looking for field '%s' with key '%s' in source '%s'", gfi.field, kn, source)
+
+		val, err := Sources[source].GetArray(kn, prevVal)
+		if err != nil {
+			return err
+		}
+
+		prevVal = &val
+
+		printf("Got value '%+v' from array source '%s' for key '%s'", val, source, gfi.field)
+
+		switch gfi.goField.Type.Kind() {
+		case reflect.Slice:
+			switch gfi.goField.Type.Elem().Kind() {
+			case reflect.String:
+				for _, s := range val {
+					printf("Appending string value '%s' to slice", s)
+					gfi.goValue.Set(reflect.Append(gfi.goValue, reflect.ValueOf(s)))
+				}
+			default:
+				//return ErrUnsupportedFieldType
+			}
+		}
+	}
+
+	return nil
+}
+
 func (gfg *Gofiguration) populateStruct() error {
 	for _, gfi := range gfg.fields {
+		printf("Populating field %s", gfi.field)
 		switch gfi.goField.Type.Kind() {
 		case reflect.Invalid:
 			return ErrUnsupportedFieldType
@@ -380,12 +418,17 @@ func (gfg *Gofiguration) populateStruct() error {
 		case reflect.Map:
 		// TODO
 		case reflect.Slice:
-		// TODO
+			printf("Calling populateSliceType")
+			err := gfi.populateSliceType(gfg.order)
+			if err != nil {
+				return err
+			}
 		case reflect.Struct:
 		// TODO
 		case reflect.Array:
-		// TODO
+			// TODO
 		default:
+			printf("Calling populateDefaultType")
 			err := gfi.populateDefaultType(gfg.order)
 			if err != nil {
 				return err

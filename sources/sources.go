@@ -43,4 +43,6 @@ type Source interface {
 	// Get is called to retrieve a key value
 	// - FIXME could use interface{} and maintain types, e.g. json?
 	Get(key string, overrideDefault *string) (string, error)
+	// GetArray is called to retrieve an array value
+	GetArray(key string, overrideDefault *[]string) ([]string, error)
 }

@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/ian-kent/gofigure/sources"
 )
 
 // TODO
@@ -410,5 +412,24 @@ func TestUintField(t *testing.T) {
 		So(cfg.Uint16Field, ShouldEqual, 0)
 		So(cfg.Uint32Field, ShouldEqual, 0)
 		So(cfg.Uint64Field, ShouldEqual, 0)
+	})
+}
+
+func TestArrayField(t *testing.T) {
+	Debug = true
+	sources.Debug = true
+	Convey("String array should work", t, func() {
+		os.Clearenv()
+		os.Args = []string{
+			"gofigure",
+			"-array-string-field", "foo",
+			"-array-string-field", "bar",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.ArrayStringField, ShouldNotBeNil)
+		So(len(cfg.ArrayStringField), ShouldEqual, 2)
 	})
 }

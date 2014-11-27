@@ -19,13 +19,30 @@ func camelToFlag(camel string) (flag string) {
 
 // CommandLine implements command line configuration using the flag package
 type CommandLine struct {
-	flags map[string]*string
-	oldCl *flag.FlagSet
+	flags      map[string]*string
+	arrayFlags map[string]*arrayValue
+	oldCl      *flag.FlagSet
+}
+
+type arrayValue []string
+
+func (aV *arrayValue) Set(value string) error {
+	printf("Set called for arrayValue: %s", value)
+	if *aV == nil {
+		*aV = make([]string, 0, 1)
+	}
+	*aV = append(*aV, value)
+	return nil
+}
+
+func (aV *arrayValue) String() string {
+	return strings.Join(*aV, ", ")
 }
 
 // Init is called at the start of a new struct
 func (cl *CommandLine) Init(args map[string]string) error {
 	cl.flags = make(map[string]*string)
+	cl.arrayFlags = make(map[string]*arrayValue)
 	cl.oldCl = flag.CommandLine
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	return nil
@@ -45,13 +62,30 @@ func (cl *CommandLine) Register(key, defaultValue string, params map[string]stri
 
 	// TODO validate key?
 	// TODO use typed calls instead of StringVar
-	val := defaultValue
-	cl.flags[key] = &val
+	printf("Got type %s", t.Kind())
+	switch t.Kind() {
+	case reflect.Slice:
+		printf("Registering slice type for %s", key)
+		var val arrayValue
+		if len(defaultValue) > 0 {
+			val = append(val, defaultValue)
+		}
+		cl.arrayFlags[key] = &val
 
-	// TODO validate description in some way?
-	desc := params["flagDesc"]
+		// TODO validate description in some way?
+		desc := params["flagDesc"]
 
-	flag.StringVar(&val, key, defaultValue, desc)
+		flag.Var(&val, key, desc)
+	default:
+		printf("Registering default type for %s", key)
+		val := defaultValue
+		cl.flags[key] = &val
+
+		// TODO validate description in some way?
+		desc := params["flagDesc"]
+
+		flag.StringVar(&val, key, defaultValue, desc)
+	}
 
 	return nil
 }
@@ -79,4 +113,28 @@ func (cl *CommandLine) Get(key string, overrideDefault *string) (string, error) 
 		return *overrideDefault, nil
 	}
 	return "", nil
+}
+
+func (cl *CommandLine) GetArray(key string, overrideDefault *[]string) ([]string, error) {
+	key = camelToFlag(key)
+	printf("Looking up array key '%s'", key)
+
+	if !flag.CommandLine.Parsed() {
+		flag.Parse()
+	}
+	// TODO check if flag exists/overrideDefault
+	val := []string{}
+	if v, ok := cl.arrayFlags[key]; ok {
+		printf("Found flag value '%s'", *v)
+		val = *v
+	}
+	if len(val) > 0 {
+		printf("Returning val '%s'", val)
+		return val, nil
+	}
+	if overrideDefault != nil {
+		printf("Returning overrideDefault '%s'", *overrideDefault)
+		return *overrideDefault, nil
+	}
+	return val, nil
 }
