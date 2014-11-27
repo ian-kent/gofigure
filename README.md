@@ -19,7 +19,7 @@ type config struct {
   gofigure interface{} `envPrefix:"BAR" order:"flag,env"`
   RemoteAddr string `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
   LocalAddr  string `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
-  NumCPU     int    `env:"NUM_CPU" flag:"num-cpu" flagDeg:"Number of CPUs"`
+  NumCPU     int    `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
 }
 
 func main() {
