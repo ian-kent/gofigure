@@ -14,6 +14,8 @@ import (
  * BAR_REMOTE_ADDR="test" ./example
  * BAR_LOCAL_ADDR="test" ./example -remote-addr="test"
  * BAR_LOCAL_ADDR="test" ./example -local-addr="override"
+ * ./example -source="Foo" -source="Bar"
+ * ./example -number=1 -number=5
  */
 
 // Define a struct
