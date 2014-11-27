@@ -245,146 +245,154 @@ func numVal(i string) string {
 	return i
 }
 
-func (gfg *Gofiguration) populateStruct() error {
-	for _, gfi := range gfg.fields {
-		var prevVal *string
-		for _, o := range gfg.order {
-			if prevVal == nil {
-				var s = ""
-				prevVal = &s
+func (gfi *Gofiguritem) populateDefaultType(order []string) error {
+	var prevVal *string
+
+	for _, source := range order {
+		kn := gfi.field
+		if k, ok := gfi.keys[source]; ok {
+			kn = k
+		}
+
+		val, err := Sources[source].Get(kn, prevVal)
+		if err != nil {
+			return err
+		}
+
+		prevVal = &val
+
+		printf("Got value '%s' from source '%s' for key '%s'", val, source, gfi.field)
+
+		switch gfi.goField.Type.Kind() {
+		case reflect.Bool:
+			if len(val) == 0 {
+				printf("Setting bool value to false")
+				val = "false"
 			}
-			kn := gfi.field
-			if k, ok := gfi.keys[o]; ok {
-				kn = k
-			}
-			val, err := Sources[o].Get(kn, prevVal)
-			prevVal = &val
-			gfg.printf("Got value '%s' from source '%s' for key '%s'", val, o, gfi.field)
+			b, err := strconv.ParseBool(val)
 			if err != nil {
 				return err
 			}
+			gfi.goValue.SetBool(b)
+		case reflect.Int:
+			i, err := strconv.ParseInt(numVal(val), 10, 64)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetInt(i)
+		case reflect.Int8:
+			i, err := strconv.ParseInt(numVal(val), 10, 8)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetInt(i)
+		case reflect.Int16:
+			i, err := strconv.ParseInt(numVal(val), 10, 16)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetInt(i)
+		case reflect.Int32:
+			i, err := strconv.ParseInt(numVal(val), 10, 32)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetInt(i)
+		case reflect.Int64:
+			i, err := strconv.ParseInt(numVal(val), 10, 64)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetInt(i)
+		case reflect.Uint:
+			i, err := strconv.ParseUint(numVal(val), 10, 64)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetUint(i)
+		case reflect.Uint8:
+			i, err := strconv.ParseUint(numVal(val), 10, 8)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetUint(i)
+		case reflect.Uint16:
+			i, err := strconv.ParseUint(numVal(val), 10, 16)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetUint(i)
+		case reflect.Uint32:
+			i, err := strconv.ParseUint(numVal(val), 10, 32)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetUint(i)
+		case reflect.Uint64:
+			i, err := strconv.ParseUint(numVal(val), 10, 64)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetUint(i)
+		case reflect.Float32:
+			f, err := strconv.ParseFloat(numVal(val), 32)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetFloat(f)
+		case reflect.Float64:
+			f, err := strconv.ParseFloat(numVal(val), 64)
+			if err != nil {
+				return err
+			}
+			gfi.goValue.SetFloat(f)
+		case reflect.String:
+			gfi.goValue.SetString(val)
+		default:
+			return ErrUnsupportedFieldType
+		}
+	}
 
-			// FIXME returns ErrUnsupportedFieldType
-			// but should it...
-			// Two choices:
-			// - ignore errors so other fields are parsed
-			// - keep errors as "fatal", but support "unexported" fields
+	return nil
+}
 
-			switch gfi.goField.Type.Kind() {
-			case reflect.Invalid:
-				return ErrUnsupportedFieldType
-			case reflect.Bool:
-				if len(val) == 0 {
-					gfg.printf("Setting bool value to false")
-					val = "false"
-				}
-				b, err := strconv.ParseBool(val)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetBool(b)
-			case reflect.Int:
-				i, err := strconv.ParseInt(numVal(val), 10, 64)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetInt(i)
-			case reflect.Int8:
-				i, err := strconv.ParseInt(numVal(val), 10, 8)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetInt(i)
-			case reflect.Int16:
-				i, err := strconv.ParseInt(numVal(val), 10, 16)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetInt(i)
-			case reflect.Int32:
-				i, err := strconv.ParseInt(numVal(val), 10, 32)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetInt(i)
-			case reflect.Int64:
-				i, err := strconv.ParseInt(numVal(val), 10, 64)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetInt(i)
-			case reflect.Uint:
-				i, err := strconv.ParseUint(numVal(val), 10, 64)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetUint(i)
-			case reflect.Uint8:
-				i, err := strconv.ParseUint(numVal(val), 10, 8)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetUint(i)
-			case reflect.Uint16:
-				i, err := strconv.ParseUint(numVal(val), 10, 16)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetUint(i)
-			case reflect.Uint32:
-				i, err := strconv.ParseUint(numVal(val), 10, 32)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetUint(i)
-			case reflect.Uint64:
-				i, err := strconv.ParseUint(numVal(val), 10, 64)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetUint(i)
-			case reflect.Uintptr:
-				return ErrUnsupportedFieldType
-			case reflect.Float32:
-				f, err := strconv.ParseFloat(numVal(val), 32)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetFloat(f)
-			case reflect.Float64:
-				f, err := strconv.ParseFloat(numVal(val), 64)
-				if err != nil {
-					return err
-				}
-				gfi.goValue.SetFloat(f)
-			case reflect.Complex64:
-				return ErrUnsupportedFieldType
-			case reflect.Complex128:
-				return ErrUnsupportedFieldType
-			case reflect.Array:
-				// TODO
-			case reflect.Chan:
-				return ErrUnsupportedFieldType
-			case reflect.Func:
-				return ErrUnsupportedFieldType
-			case reflect.Interface:
-			case reflect.Map:
-				// TODO
-			case reflect.Ptr:
-				return ErrUnsupportedFieldType
-			case reflect.Slice:
-				// TODO
-			case reflect.String:
-				gfi.goValue.SetString(val)
-			case reflect.Struct:
-				// TODO
-			case reflect.UnsafePointer:
-				return ErrUnsupportedFieldType
-			default:
-				return ErrUnsupportedFieldType
+func (gfg *Gofiguration) populateStruct() error {
+	for _, gfi := range gfg.fields {
+		switch gfi.goField.Type.Kind() {
+		case reflect.Invalid:
+			return ErrUnsupportedFieldType
+		case reflect.Uintptr:
+			return ErrUnsupportedFieldType
+		case reflect.Complex64:
+			return ErrUnsupportedFieldType
+		case reflect.Complex128:
+			return ErrUnsupportedFieldType
+		case reflect.Chan:
+			return ErrUnsupportedFieldType
+		case reflect.Func:
+			return ErrUnsupportedFieldType
+		case reflect.Ptr:
+			return ErrUnsupportedFieldType
+		case reflect.UnsafePointer:
+			return ErrUnsupportedFieldType
+		case reflect.Interface:
+		// TODO
+		case reflect.Map:
+		// TODO
+		case reflect.Slice:
+		// TODO
+		case reflect.Struct:
+		// TODO
+		case reflect.Array:
+		// TODO
+		default:
+			err := gfi.populateDefaultType(gfg.order)
+			if err != nil {
+				return err
 			}
 		}
 	}
+
 	return nil
 }
 
