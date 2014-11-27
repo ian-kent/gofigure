@@ -366,13 +366,13 @@ func (gfi *Gofiguritem) populateSliceType(order []string) error {
 		}
 
 		printf("Looking for field '%s' with key '%s' in source '%s'", gfi.field, kn, source)
-
 		val, err := Sources[source].GetArray(kn, prevVal)
 		if err != nil {
 			return err
 		}
 
-		prevVal = &val
+		// This causes duplication between array sources depending on order
+		//prevVal = &val
 
 		printf("Got value '%+v' from array source '%s' for key '%s'", val, source, gfi.field)
 
