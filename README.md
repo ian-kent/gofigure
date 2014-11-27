@@ -25,6 +25,7 @@ type config struct {
 }
 
 func main() {
+  var cfg config
   err := gofigure.Gofigure(&cfg)
   if err != nil {
     log.Fatal(err)
