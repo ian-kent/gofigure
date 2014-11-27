@@ -19,16 +19,9 @@ type config struct {
   gofigure interface{} `envPrefix:"BAR" order:"flag,env"`
   RemoteAddr string `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
   LocalAddr  string `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
-  NumCPU     int    `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
-}
-
-func main() {
-  var cfg config
-  err := gofigure.Gofigure(&cfg)
-  if err != nil {
-    log.Fatal(err)
-  }
-  // cfg fields should be set
+  NumCPU int `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
+  Sources []string `env:"SOURCES" flag:"source" flagDesc:"Source URL (can be provided multiple times)"`
+  Numbers []int `env:"NUMBERS" flag:"number" flagDesc:"Number (can be provided multiple times)"`
 }
 ```
 

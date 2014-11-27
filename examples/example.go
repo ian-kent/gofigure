@@ -23,7 +23,12 @@ type config struct {
 	// Define some configuration items
 	RemoteAddr string `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
 	LocalAddr  string `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
-	NumCPU     int    `env:"NUM_CPU" flag:"num-cpu" flagDeg:"Number of CPUs"`
+	// Also supports int/uint values
+	NumCPU int `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
+	// And slices
+	Sources []string `env:"SOURCES" flag:"source" flagDesc:"Source URL (can be provided multiple times)"`
+	// And slices of ints/uints
+	Numbers []int `env:"NUMBERS" flag:"number" flagDesc:"Number (can be provided multiple times)"`
 }
 
 func main() {
