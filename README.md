@@ -23,6 +23,14 @@ type config struct {
   Sources []string `env:"SOURCES" flag:"source" flagDesc:"Source URL (can be provided multiple times)"`
   Numbers []int `env:"NUMBERS" flag:"number" flagDesc:"Number (can be provided multiple times)"`
 }
+
+func main() {
+  err := gofigure.Gofigure(&cfg)
+  if err != nil {
+    log.Fatal(err)
+  }
+  // use cfg
+}
 ```
 
 ### gofigure field
