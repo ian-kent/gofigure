@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/ian-kent/gofigure/sources"
 )
 
 // TODO
@@ -523,8 +521,6 @@ func TestUintField(t *testing.T) {
 }
 
 func TestArrayField(t *testing.T) {
-	Debug = true
-	sources.Debug = true
 	Convey("String array should work", t, func() {
 		os.Clearenv()
 		os.Args = []string{
