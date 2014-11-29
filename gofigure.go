@@ -42,6 +42,7 @@ type gofiguration struct {
 	params  map[string]map[string]string
 	fields  map[string]*gofiguritem
 	flagged bool
+	parent  *gofiguration
 	s       interface{}
 }
 
@@ -55,6 +56,7 @@ type gofiguritem struct {
 	field   string
 	goField reflect.StructField
 	goValue reflect.Value
+	inner   *gofiguration
 }
 
 // Sources contains a map of struct field tag names to source implementation
@@ -79,14 +81,25 @@ var ErrUnsupportedFieldType = errors.New("Unsupported field type")
 
 // ParseStruct creates a gofiguration from a struct.
 //
-// It returns ErrUnsupportedType if s is not a pointer to a struct.
+// It returns ErrUnsupportedType if s is not a struct or a
+// pointer to a struct.
 func parseStruct(s interface{}) (*gofiguration, error) {
-	if reflect.Indirect(reflect.ValueOf(s)).Kind() != reflect.Struct {
+	var v reflect.Value
+	if reflect.TypeOf(s) != reflect.TypeOf(v) {
+		v = reflect.ValueOf(s)
+
+		if v.Kind() == reflect.PtrTo(reflect.TypeOf(s)).Kind() {
+			v = reflect.Indirect(v)
+		}
+	} else {
+		v = s.(reflect.Value)
+	}
+
+	if v.Kind() != reflect.Struct {
 		return nil, ErrUnsupportedType
 	}
 
-	t := reflect.TypeOf(s).Elem()
-	v := reflect.ValueOf(s).Elem()
+	t := v.Type()
 
 	gfg := &gofiguration{
 		params: make(map[string]map[string]string),
@@ -233,8 +246,24 @@ func (gfg *gofiguration) registerFields() error {
 			if k, ok := gfi.keys[o]; ok {
 				kn = k
 			}
+
 			gfg.printf("Registering '%s' for source '%s' with key '%s'", gfi.field, o, kn)
-			err := Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
+			var err error
+			switch gfi.goField.Type.Kind() {
+			case reflect.Struct:
+				gfg.printf("Registering as struct type")
+				// TODO do shit
+				sGfg, err := parseStruct(gfi.goValue)
+				if err != nil {
+					return err
+				}
+				sGfg.apply(gfg)
+				gfi.inner = sGfg
+			default:
+				gfg.printf("Registering as default type")
+				err = Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
+			}
+
 			if err != nil {
 				return err
 			}
@@ -522,6 +551,10 @@ func (gfi *gofiguritem) populateSliceType(order []string) error {
 	return nil
 }
 
+func (gfi *gofiguritem) populateStructType(order []string) error {
+	return gfi.inner.populateStruct()
+}
+
 func (gfg *gofiguration) populateStruct() error {
 	for _, gfi := range gfg.fields {
 		printf("Populating field %s", gfi.field)
@@ -555,8 +588,11 @@ func (gfg *gofiguration) populateStruct() error {
 				return err
 			}
 		case reflect.Struct:
-			// TODO
-			return ErrUnsupportedFieldType
+			printf("Calling populateStructType")
+			err := gfi.populateStructType(gfg.order)
+			if err != nil {
+				return err
+			}
 		case reflect.Array:
 			// TODO
 			return ErrUnsupportedFieldType
@@ -573,15 +609,19 @@ func (gfg *gofiguration) populateStruct() error {
 }
 
 // Apply applies the gofiguration to the struct
-func (gfg *gofiguration) apply(s interface{}) error {
-	defer gfg.cleanupSources()
+func (gfg *gofiguration) apply(parent *gofiguration) error {
+	gfg.parent = parent
 
-	err := gfg.initSources()
-	if err != nil {
-		return err
+	if parent == nil {
+		defer gfg.cleanupSources()
+
+		err := gfg.initSources()
+		if err != nil {
+			return err
+		}
 	}
 
-	err = gfg.registerFields()
+	err := gfg.registerFields()
 	if err != nil {
 		return err
 	}
@@ -597,5 +637,5 @@ func Gofigure(s interface{}) error {
 	if err != nil {
 		return err
 	}
-	return gfg.apply(s)
+	return gfg.apply(nil)
 }

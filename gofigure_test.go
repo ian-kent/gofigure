@@ -74,6 +74,31 @@ func ExampleGofigure_withDefault() {
 	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 LocalAddr:localhost:49808 NumCPU:10 Sources:[test1.local test2.local] Numbers:[1 2 3]}
 }
 
+func ExampleGofigure_withNestedStruct() {
+	os.Args = []string{"gofigure", "-remote-addr", "localhost:8080", "-local-addr", "localhost:49808"}
+
+	type example struct {
+		gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
+		RemoteAddr string      `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
+		Advanced   struct {
+			LocalAddr string `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
+		}
+	}
+
+	var cfg example
+
+	// Pass a reference to Gofigure
+	err := Gofigure(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Fields on cfg should be set!
+	fmt.Printf("%+v", cfg)
+
+	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 Advanced:{LocalAddr:localhost:49808}}
+}
+
 func clear() {
 	os.Clearenv()
 	os.Args = []string{"gofigure"}

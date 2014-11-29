@@ -1,9 +1,10 @@
 gofigure  [![GoDoc](https://godoc.org/github.com/ian-kent/gofigure?status.svg)](https://godoc.org/github.com/ian-kent/gofigure)
 ========
 
-Configuration made easy.
+Go configuration made easy!
 
 - Just define a struct and call Gofigure
+- Supports strings, ints/uints/floats, slices and nested structs
 - Supports environment variables and command line flags
 
 ### Example
@@ -22,6 +23,10 @@ type config struct {
   NumCPU int `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
   Sources []string `env:"SOURCES" flag:"source" flagDesc:"Source URL (can be provided multiple times)"`
   Numbers []int `env:"NUMBERS" flag:"number" flagDesc:"Number (can be provided multiple times)"`
+  Advanced struct{
+      MaxBytes int64 `env:"MAX_BYTES" flag:"max-bytes" flagDesc:"Max bytes"`
+      MaxErrors int64  `env:"MAX_ERRORS" flag:"max-errors" flagDesc:"Max errors"`
+  }
 }
 
 func main() {
