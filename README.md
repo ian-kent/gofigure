@@ -1,4 +1,4 @@
-gofigure  [![GoDoc](https://godoc.org/github.com/ian-kent/gofigure?status.svg)](https://godoc.org/github.com/ian-kent/gofigure)
+gofigure  [![GoDoc](https://godoc.org/github.com/ian-kent/gofigure?status.svg)](https://godoc.org/github.com/ian-kent/gofigure) [![Build Status](https://travis-ci.org/ian-kent/gofigure.svg?branch=master)](https://travis-ci.org/ian-kent/gofigure)
 ========
 
 Go configuration made easy!
