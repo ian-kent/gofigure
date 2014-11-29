@@ -42,6 +42,38 @@ func ExampleGofigure() {
 	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 LocalAddr: NumCPU:0 Sources:[] Numbers:[]}
 }
 
+func ExampleGofigure_withDefault() {
+	os.Args = []string{"gofigure", "-remote-addr", "localhost:8080"}
+
+	type example struct {
+		gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
+		RemoteAddr string      `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
+		LocalAddr  string      `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
+		NumCPU     int         `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
+		Sources    []string    `env:"SOURCES" flag:"source" flagDesc:"Source URL (can be provided multiple times)"`
+		Numbers    []int       `env:"NUMBERS" flag:"number" flagDesc:"Number (can be provided multiple times)"`
+	}
+
+	var cfg = example{
+		RemoteAddr: "localhost:6060",
+		LocalAddr:  "localhost:49808",
+		NumCPU:     10,
+		Sources:    []string{"test1.local", "test2.local"},
+		Numbers:    []int{1, 2, 3},
+	}
+
+	// Pass a reference to Gofigure
+	err := Gofigure(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Fields on cfg should be set!
+	fmt.Printf("%+v", cfg)
+
+	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 LocalAddr:localhost:49808 NumCPU:10 Sources:[test1.local test2.local] Numbers:[1 2 3]}
+}
+
 func clear() {
 	os.Clearenv()
 	os.Args = []string{"gofigure"}

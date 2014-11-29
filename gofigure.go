@@ -5,6 +5,7 @@ package gofigure
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 	"regexp"
@@ -250,7 +251,40 @@ func numVal(i string) string {
 }
 
 func (gfi *gofiguritem) populateDefaultType(order []string) error {
-	var prevVal *string
+	// FIXME could just preserve types
+	var v string
+	switch gfi.goField.Type.Kind() {
+	case reflect.Bool:
+		v = fmt.Sprintf("%t", gfi.goValue.Bool())
+	case reflect.Int:
+		v = fmt.Sprintf("%d", gfi.goValue.Int())
+	case reflect.Int8:
+		v = fmt.Sprintf("%d", gfi.goValue.Int())
+	case reflect.Int16:
+		v = fmt.Sprintf("%d", gfi.goValue.Int())
+	case reflect.Int32:
+		v = fmt.Sprintf("%d", gfi.goValue.Int())
+	case reflect.Int64:
+		v = fmt.Sprintf("%d", gfi.goValue.Int())
+	case reflect.Uint:
+		v = fmt.Sprintf("%d", gfi.goValue.Uint())
+	case reflect.Uint8:
+		v = fmt.Sprintf("%d", gfi.goValue.Uint())
+	case reflect.Uint16:
+		v = fmt.Sprintf("%d", gfi.goValue.Uint())
+	case reflect.Uint32:
+		v = fmt.Sprintf("%d", gfi.goValue.Uint())
+	case reflect.Uint64:
+		v = fmt.Sprintf("%d", gfi.goValue.Uint())
+	case reflect.Float32:
+		v = fmt.Sprintf("%f", gfi.goValue.Float())
+	case reflect.Float64:
+		v = fmt.Sprintf("%f", gfi.goValue.Float())
+	case reflect.String:
+		v = gfi.goValue.String()
+	}
+
+	var prevVal = &v
 
 	for _, source := range order {
 		kn := gfi.field
