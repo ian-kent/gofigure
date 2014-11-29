@@ -285,29 +285,11 @@ func (gfi *gofiguritem) populateDefaultType(order []string) error {
 	switch gfi.goField.Type.Kind() {
 	case reflect.Bool:
 		v = fmt.Sprintf("%t", gfi.goValue.Bool())
-	case reflect.Int:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		v = fmt.Sprintf("%d", gfi.goValue.Int())
-	case reflect.Int8:
-		v = fmt.Sprintf("%d", gfi.goValue.Int())
-	case reflect.Int16:
-		v = fmt.Sprintf("%d", gfi.goValue.Int())
-	case reflect.Int32:
-		v = fmt.Sprintf("%d", gfi.goValue.Int())
-	case reflect.Int64:
-		v = fmt.Sprintf("%d", gfi.goValue.Int())
-	case reflect.Uint:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v = fmt.Sprintf("%d", gfi.goValue.Uint())
-	case reflect.Uint8:
-		v = fmt.Sprintf("%d", gfi.goValue.Uint())
-	case reflect.Uint16:
-		v = fmt.Sprintf("%d", gfi.goValue.Uint())
-	case reflect.Uint32:
-		v = fmt.Sprintf("%d", gfi.goValue.Uint())
-	case reflect.Uint64:
-		v = fmt.Sprintf("%d", gfi.goValue.Uint())
-	case reflect.Float32:
-		v = fmt.Sprintf("%f", gfi.goValue.Float())
-	case reflect.Float64:
+	case reflect.Float32, reflect.Float64:
 		v = fmt.Sprintf("%f", gfi.goValue.Float())
 	case reflect.String:
 		v = gfi.goValue.String()
@@ -559,21 +541,9 @@ func (gfg *gofiguration) populateStruct() error {
 	for _, gfi := range gfg.fields {
 		printf("Populating field %s", gfi.field)
 		switch gfi.goField.Type.Kind() {
-		case reflect.Invalid:
-			return ErrUnsupportedFieldType
-		case reflect.Uintptr:
-			return ErrUnsupportedFieldType
-		case reflect.Complex64:
-			return ErrUnsupportedFieldType
-		case reflect.Complex128:
-			return ErrUnsupportedFieldType
-		case reflect.Chan:
-			return ErrUnsupportedFieldType
-		case reflect.Func:
-			return ErrUnsupportedFieldType
-		case reflect.Ptr:
-			return ErrUnsupportedFieldType
-		case reflect.UnsafePointer:
+		case reflect.Invalid, reflect.Uintptr, reflect.Complex64,
+			reflect.Complex128, reflect.Chan, reflect.Func,
+			reflect.Ptr, reflect.UnsafePointer:
 			return ErrUnsupportedFieldType
 		case reflect.Interface:
 			// TODO
