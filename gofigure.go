@@ -1,3 +1,6 @@
+// Package gofigure simplifies configuration of Go applications.
+//
+// Define a struct and call Gofigure()
 package gofigure
 
 import (
@@ -32,21 +35,21 @@ func printf(message string, args ...interface{}) {
  * - Ignore lowercased "unexported" fields?
  */
 
-// Gofiguration represents a parsed struct
-type Gofiguration struct {
+// gofiguration represents a parsed struct
+type gofiguration struct {
 	order   []string
 	params  map[string]map[string]string
-	fields  map[string]*Gofiguritem
+	fields  map[string]*gofiguritem
 	flagged bool
 	s       interface{}
 }
 
-func (gfg *Gofiguration) printf(message string, args ...interface{}) {
+func (gfg *gofiguration) printf(message string, args ...interface{}) {
 	printf(message, args...)
 }
 
-// Gofiguritem represents a single struct field
-type Gofiguritem struct {
+// gofiguritem represents a single struct field
+type gofiguritem struct {
 	keys    map[string]string
 	field   string
 	goField reflect.StructField
@@ -62,31 +65,32 @@ var Sources = map[string]sources.Source{
 // DefaultOrder sets the default order used
 var DefaultOrder = []string{"env", "flag"}
 
-var (
-	// ReEnvPrefix is used to restrict envPrefix config values
-	ReEnvPrefix = regexp.MustCompile("^([A-Z][A-Z0-9_]+|)$")
-)
+// ErrUnsupportedType is returned if the interface isn't a
+// pointer to a struct
+var ErrUnsupportedType = errors.New("Unsupported interface type")
 
-var (
-	// ErrInvalidOrder is returned if the "order" struct tag is invalid
-	ErrInvalidOrder = errors.New("Invalid order")
-	// ErrUnsupportedFieldType is returned for unsupported field types,
-	// e.g. chan or func
-	ErrUnsupportedFieldType = errors.New("Unsupported field type")
-	// ErrInvalidEnvPrefix is returned if the value of envPrefix doesn't
-	// match ReEnvPrefix
-	ErrInvalidEnvPrefix = errors.New("Invalid environment variable name prefix")
-)
+// ErrInvalidOrder is returned if the "order" struct tag is invalid
+var ErrInvalidOrder = errors.New("Invalid order")
 
-// ParseStruct creates a Gofiguration from a struct
-func ParseStruct(s interface{}) (*Gofiguration, error) {
+// ErrUnsupportedFieldType is returned for unsupported field types,
+// e.g. chan or func
+var ErrUnsupportedFieldType = errors.New("Unsupported field type")
+
+// ParseStruct creates a gofiguration from a struct.
+//
+// It returns ErrUnsupportedType if s is not a pointer to a struct.
+func parseStruct(s interface{}) (*gofiguration, error) {
+	if reflect.Indirect(reflect.ValueOf(s)).Kind() != reflect.Struct {
+		return nil, ErrUnsupportedType
+	}
+
 	t := reflect.TypeOf(s).Elem()
 	v := reflect.ValueOf(s).Elem()
 
-	gfg := &Gofiguration{
+	gfg := &gofiguration{
 		params: make(map[string]map[string]string),
 		order:  DefaultOrder,
-		fields: make(map[string]*Gofiguritem),
+		fields: make(map[string]*gofiguritem),
 		s:      s,
 	}
 
@@ -148,7 +152,7 @@ func getStructTags(tag string) map[string]string {
 
 var argRe = regexp.MustCompile("([a-z]+)([A-Z][a-z]+)")
 
-func (gfg *Gofiguration) parseGofigureField(t reflect.Type) error {
+func (gfg *gofiguration) parseGofigureField(t reflect.Type) error {
 	gf, ok := t.FieldByName("gofigure")
 	if ok {
 		tags := getStructTags(string(gf.Tag))
@@ -180,7 +184,7 @@ func (gfg *Gofiguration) parseGofigureField(t reflect.Type) error {
 	return nil
 }
 
-func (gfg *Gofiguration) parseFields(v reflect.Value, t reflect.Type) {
+func (gfg *gofiguration) parseFields(v reflect.Value, t reflect.Type) {
 	gfg.printf("Found %d fields", t.NumField())
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i).Name
@@ -191,7 +195,7 @@ func (gfg *Gofiguration) parseFields(v reflect.Value, t reflect.Type) {
 
 		gfg.printf("Parsed field '%s'", f)
 
-		gfi := &Gofiguritem{
+		gfi := &gofiguritem{
 			field:   f,
 			goField: t.Field(i),
 			goValue: v.Field(i),
@@ -205,13 +209,13 @@ func (gfg *Gofiguration) parseFields(v reflect.Value, t reflect.Type) {
 	}
 }
 
-func (gfg *Gofiguration) cleanupSources() {
+func (gfg *gofiguration) cleanupSources() {
 	for _, o := range gfg.order {
 		Sources[o].Cleanup()
 	}
 }
 
-func (gfg *Gofiguration) initSources() error {
+func (gfg *gofiguration) initSources() error {
 	for _, o := range gfg.order {
 		err := Sources[o].Init(gfg.params[o])
 		if err != nil {
@@ -221,7 +225,7 @@ func (gfg *Gofiguration) initSources() error {
 	return nil
 }
 
-func (gfg *Gofiguration) registerFields() error {
+func (gfg *gofiguration) registerFields() error {
 	for _, gfi := range gfg.fields {
 		for _, o := range gfg.order {
 			kn := gfi.field
@@ -245,7 +249,7 @@ func numVal(i string) string {
 	return i
 }
 
-func (gfi *Gofiguritem) populateDefaultType(order []string) error {
+func (gfi *gofiguritem) populateDefaultType(order []string) error {
 	var prevVal *string
 
 	for _, source := range order {
@@ -356,7 +360,7 @@ func (gfi *Gofiguritem) populateDefaultType(order []string) error {
 	return nil
 }
 
-func (gfi *Gofiguritem) populateSliceType(order []string) error {
+func (gfi *gofiguritem) populateSliceType(order []string) error {
 	var prevVal *[]string
 
 	for _, source := range order {
@@ -484,7 +488,7 @@ func (gfi *Gofiguritem) populateSliceType(order []string) error {
 	return nil
 }
 
-func (gfg *Gofiguration) populateStruct() error {
+func (gfg *gofiguration) populateStruct() error {
 	for _, gfi := range gfg.fields {
 		printf("Populating field %s", gfi.field)
 		switch gfi.goField.Type.Kind() {
@@ -534,8 +538,8 @@ func (gfg *Gofiguration) populateStruct() error {
 	return nil
 }
 
-// Apply applies the Gofiguration to the struct
-func (gfg *Gofiguration) Apply(s interface{}) error {
+// Apply applies the gofiguration to the struct
+func (gfg *gofiguration) apply(s interface{}) error {
 	defer gfg.cleanupSources()
 
 	err := gfg.initSources()
@@ -551,11 +555,13 @@ func (gfg *Gofiguration) Apply(s interface{}) error {
 	return gfg.populateStruct()
 }
 
-// Gofigure parses and applies the configuration defined by the struct
+// Gofigure parses and applies the configuration defined by the struct.
+//
+// It returns ErrUnsupportedType if s is not a pointer to a struct.
 func Gofigure(s interface{}) error {
-	gfg, err := ParseStruct(s)
+	gfg, err := parseStruct(s)
 	if err != nil {
 		return err
 	}
-	return gfg.Apply(s)
+	return gfg.apply(s)
 }

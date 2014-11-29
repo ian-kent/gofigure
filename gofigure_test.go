@@ -1,6 +1,8 @@
 package gofigure
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -13,6 +15,37 @@ import (
 // TODO
 // - flagDesc
 // - flag and env default keys
+
+func ExampleGofigure() {
+	os.Args = []string{"gofigure", "-remote-addr", "localhost:8080"}
+
+	type example struct {
+		gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
+		RemoteAddr string      `env:"REMOTE_ADDR" flag:"remote-addr" flagDesc:"Remote address"`
+		LocalAddr  string      `env:"LOCAL_ADDR" flag:"local-addr" flagDesc:"Local address"`
+		NumCPU     int         `env:"NUM_CPU" flag:"num-cpu" flagDesc:"Number of CPUs"`
+		Sources    []string    `env:"SOURCES" flag:"source" flagDesc:"Source URL (can be provided multiple times)"`
+		Numbers    []int       `env:"NUMBERS" flag:"number" flagDesc:"Number (can be provided multiple times)"`
+	}
+
+	var cfg example
+
+	// Pass a reference to Gofigure
+	err := Gofigure(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Fields on cfg should be set!
+	fmt.Printf("%+v", cfg)
+
+	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 LocalAddr: NumCPU:0 Sources:[] Numbers:[]}
+}
+
+func clear() {
+	os.Clearenv()
+	os.Args = []string{"gofigure"}
+}
 
 // MyConfigFoo is a basic test struct
 type MyConfigFoo struct {
@@ -57,48 +90,55 @@ type MyConfigFull struct {
 	ArrayStringField []string
 }
 
-func TestParseStruct(t *testing.T) {
-	Convey("ParseStruct should keep a reference to the struct", t, func() {
+func TestparseStruct(t *testing.T) {
+	Convey("parseStruct should return an error unless given a pointer to a struct", t, func() {
+		info, e := parseStruct(1)
+		So(e, ShouldNotBeNil)
+		So(e, ShouldEqual, ErrUnsupportedType)
+		So(info, ShouldBeNil)
+	})
+
+	Convey("parseStruct should keep a reference to the struct", t, func() {
 		ref := &MyConfigFoo{}
-		info, e := ParseStruct(ref)
+		info, e := parseStruct(ref)
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(info.s, ShouldEqual, ref)
 	})
 
-	Convey("ParseStruct should read gofigure envPrefix tag correctly", t, func() {
-		info, e := ParseStruct(&MyConfigFoo{})
+	Convey("parseStruct should read gofigure envPrefix tag correctly", t, func() {
+		info, e := parseStruct(&MyConfigFoo{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(info.params["env"]["prefix"], ShouldEqual, "FOO")
 
-		info, e = ParseStruct(&MyConfigBar{})
+		info, e = parseStruct(&MyConfigBar{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(info.params["env"]["prefix"], ShouldEqual, "BAR")
 	})
 
-	Convey("ParseStruct should read gofigure order tag correctly", t, func() {
-		info, e := ParseStruct(&MyConfigFoo{})
+	Convey("parseStruct should read gofigure order tag correctly", t, func() {
+		info, e := parseStruct(&MyConfigFoo{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(info.order, ShouldResemble, []string{"env", "flag"})
 
-		info, e = ParseStruct(&MyConfigBar{})
+		info, e = parseStruct(&MyConfigBar{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(info.order, ShouldResemble, []string{"flag", "env"})
 	})
 
 	Convey("Invalid order should return error", t, func() {
-		info, e := ParseStruct(&MyConfigBaz{})
+		info, e := parseStruct(&MyConfigBaz{})
 		So(e, ShouldNotBeNil)
 		So(e, ShouldEqual, ErrInvalidOrder)
 		So(info, ShouldBeNil)
 	})
 
-	Convey("ParseStruct should read fields correctly", t, func() {
-		info, e := ParseStruct(&MyConfigFoo{})
+	Convey("parseStruct should read fields correctly", t, func() {
+		info, e := parseStruct(&MyConfigFoo{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(len(info.fields), ShouldEqual, 1)
@@ -111,7 +151,7 @@ func TestParseStruct(t *testing.T) {
 		So(info.fields["BindAddr"].goField.Type.Kind(), ShouldEqual, reflect.String)
 		So(info.fields["BindAddr"].goValue, ShouldNotBeNil)
 
-		info, e = ParseStruct(&MyConfigBar{})
+		info, e = parseStruct(&MyConfigBar{})
 		So(e, ShouldBeNil)
 		So(info, ShouldNotBeNil)
 		So(len(info.fields), ShouldEqual, 2)
@@ -132,6 +172,8 @@ func TestParseStruct(t *testing.T) {
 		So(info.fields["LocalAddr"].goField.Type.Kind(), ShouldEqual, reflect.String)
 		So(info.fields["LocalAddr"].goValue, ShouldNotBeNil)
 	})
+
+	clear()
 }
 
 func TestGofigure(t *testing.T) {
@@ -186,6 +228,8 @@ func TestGofigure(t *testing.T) {
 		So(cfg2, ShouldNotBeNil)
 		So(cfg2.RemoteAddr, ShouldEqual, "def")
 	})
+
+	clear()
 }
 
 func TestBoolField(t *testing.T) {
@@ -252,6 +296,8 @@ func TestBoolField(t *testing.T) {
 		So(cfg, ShouldNotBeNil)
 		So(cfg.BoolField, ShouldEqual, false)
 	})
+
+	clear()
 }
 
 func TestIntField(t *testing.T) {
@@ -353,6 +399,8 @@ func TestIntField(t *testing.T) {
 		So(cfg.Int32Field, ShouldEqual, 0)
 		So(cfg.Int64Field, ShouldEqual, 0)
 	})
+
+	clear()
 }
 
 func TestUintField(t *testing.T) {
@@ -413,6 +461,8 @@ func TestUintField(t *testing.T) {
 		So(cfg.Uint32Field, ShouldEqual, 0)
 		So(cfg.Uint64Field, ShouldEqual, 0)
 	})
+
+	clear()
 }
 
 func TestArrayField(t *testing.T) {
@@ -435,7 +485,6 @@ func TestArrayField(t *testing.T) {
 	})
 
 	Convey("Int array should work", t, func() {
-		os.Clearenv()
 		os.Args = []string{
 			"gofigure",
 			"-array-int-field", "1",
@@ -449,4 +498,6 @@ func TestArrayField(t *testing.T) {
 		So(len(cfg.ArrayIntField), ShouldEqual, 2)
 		So(cfg.ArrayIntField, ShouldResemble, []int{1, 2})
 	})
+
+	clear()
 }
