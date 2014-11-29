@@ -36,8 +36,6 @@ func ExampleGofigure() {
 
 	// Fields on cfg should be set!
 	fmt.Printf("%+v", cfg)
-
-	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 LocalAddr: NumCPU:0 Sources:[] Numbers:[]}
 }
 
 func ExampleGofigure_withDefault() {
@@ -68,8 +66,6 @@ func ExampleGofigure_withDefault() {
 
 	// Fields on cfg should be set!
 	fmt.Printf("%+v", cfg)
-
-	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 LocalAddr:localhost:49808 NumCPU:10 Sources:[test1.local test2.local] Numbers:[1 2 3]}
 }
 
 func ExampleGofigure_withNestedStruct() {
@@ -93,8 +89,6 @@ func ExampleGofigure_withNestedStruct() {
 
 	// Fields on cfg should be set!
 	fmt.Printf("%+v", cfg)
-
-	// Output: {gofigure:?reflect.Value? RemoteAddr:localhost:8080 Advanced:{LocalAddr:localhost:49808}}
 }
 
 func clear() {
