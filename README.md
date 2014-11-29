@@ -1,4 +1,4 @@
-gofigure  [![GoDoc](https://godoc.org/github.com/ian-kent/gofigure?status.svg)](https://godoc.org/github.com/ian-kent/gofigure) [![Build Status](https://travis-ci.org/ian-kent/gofigure.svg?branch=master)](https://travis-ci.org/ian-kent/gofigure)
+gofigure  [![GoDoc](https://godoc.org/github.com/ian-kent/gofigure?status.svg)](https://godoc.org/github.com/ian-kent/gofigure) [![Build Status](https://travis-ci.org/ian-kent/gofigure.svg?branch=master)](https://travis-ci.org/ian-kent/gofigure) [![Coverage Status](https://coveralls.io/repos/ian-kent/gofigure/badge.png?branch=master)](https://coveralls.io/r/ian-kent/gofigure?branch=master)
 ========
 
 Go configuration made easy!
