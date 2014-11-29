@@ -7,6 +7,8 @@ Go configuration made easy!
 - Supports strings, ints/uints/floats, slices and nested structs
 - Supports environment variables and command line flags
 
+Requires Go 1.2+ because of differences in Go's flag package.
+
 ### Example
 
 `go get github.com/ian-kent/gofigure`
