@@ -16,7 +16,7 @@ import (
 )
 
 // Debug controls log output
-var Debug = false
+var Debug = true
 var _ = func() {
 	sources.Debug = Debug
 	sources.Logger = printf
@@ -38,12 +38,13 @@ func printf(message string, args ...interface{}) {
 
 // gofiguration represents a parsed struct
 type gofiguration struct {
-	order   []string
-	params  map[string]map[string]string
-	fields  map[string]*gofiguritem
-	flagged bool
-	parent  *gofiguration
-	s       interface{}
+	order    []string
+	params   map[string]map[string]string
+	fields   map[string]*gofiguritem
+	flagged  bool
+	parent   *gofiguration
+	children []*gofiguration
+	s        interface{}
 }
 
 func (gfg *gofiguration) printf(message string, args ...interface{}) {
@@ -575,6 +576,13 @@ func (gfg *gofiguration) populateStruct() error {
 		}
 	}
 
+	for _, c := range gfg.children {
+		err := c.populateStruct()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -589,6 +597,8 @@ func (gfg *gofiguration) apply(parent *gofiguration) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		parent.children = append(parent.children, gfg)
 	}
 
 	err := gfg.registerFields()
@@ -596,7 +606,11 @@ func (gfg *gofiguration) apply(parent *gofiguration) error {
 		return err
 	}
 
-	return gfg.populateStruct()
+	if parent == nil {
+		return gfg.populateStruct()
+	}
+
+	return nil
 }
 
 // Gofigure parses and applies the configuration defined by the struct.
