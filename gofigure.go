@@ -16,7 +16,7 @@ import (
 )
 
 // Debug controls log output
-var Debug = true
+var Debug = false
 var _ = func() {
 	sources.Debug = Debug
 	sources.Logger = printf
