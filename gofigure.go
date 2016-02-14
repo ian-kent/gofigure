@@ -539,6 +539,10 @@ func (gfi *gofiguritem) populateStructType(order []string) error {
 }
 
 func (gfg *gofiguration) populateStruct() error {
+	if gfg == nil {
+		return nil
+	}
+
 	for _, gfi := range gfg.fields {
 		printf("Populating field %s", gfi.field)
 		switch gfi.goField.Type.Kind() {
