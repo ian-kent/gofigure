@@ -531,6 +531,20 @@ func TestArrayField(t *testing.T) {
 		So(cfg.ArrayStringField, ShouldResemble, []string{"foo", "bar"})
 	})
 
+	Convey("String array should work (env)", t, func() {
+		os.Clearenv()
+		os.Setenv("GOFIGURE_ENV_ARRAY", "1")
+		os.Setenv("ARRAY_STRING_FIELD", "foo,bar,baz")
+		os.Args = []string{
+			"gofigure",
+		}
+		var cfg MyConfigFull
+		err := Gofigure(&cfg)
+		So(err, ShouldBeNil)
+		So(cfg, ShouldNotBeNil)
+		So(cfg.ArrayStringField, ShouldResemble, []string{"foo", "bar", "baz"})
+	})
+
 	Convey("Int array should work", t, func() {
 		os.Args = []string{
 			"gofigure",

@@ -55,6 +55,24 @@ For example, the `envPrefix` field is split into `env` and `prefix`,
 and the tag value is passed to the environment variable source as
 the `prefix` parameter.
 
+### Arrays and environment variables
+
+Array support for environment variables is currently experimental.
+
+To enable it, set `GOFIGURE_ENV_ARRAYS=1`.
+
+When enabled, the environment variable is split on commas, e.g.
+
+```
+struct {
+    EnvArray []string `env:"MY_ENV_VAR"`
+}
+
+MY_ENV_VAR=a,b,c
+
+EnvArray = []string{"a", "b", "c"}
+```
+
 ### Licence
 
 Copyright ©‎ 2014, Ian Kent (http://www.iankent.eu).

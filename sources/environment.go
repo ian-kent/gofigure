@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -10,9 +11,10 @@ import (
 
 // Environment implements environment variable configuration using envconf
 type Environment struct {
-	prefix string
-	infix  string
-	fields map[string]string
+	prefix        string
+	infix         string
+	fields        map[string]string
+	supportArrays bool
 }
 
 var camelRe1 = regexp.MustCompile("(.)([A-Z][a-z]+)")
@@ -35,6 +37,10 @@ func (env *Environment) Init(args map[string]string) error {
 	}
 	if envInfix, ok := args["infix"]; ok {
 		env.infix = envInfix
+	}
+
+	if v := os.Getenv("GOFIGURE_ENV_ARRAY"); v == "1" || strings.ToLower(v) == "true" || strings.ToLower(v) == "y" {
+		env.supportArrays = true
 	}
 
 	return nil
@@ -63,8 +69,6 @@ func (env *Environment) Get(key string, overrideDefault *string) (string, error)
 
 // GetArray is called to retrieve an array value
 func (env *Environment) GetArray(key string, overrideDefault *[]string) ([]string, error) {
-	// This doesn't actually support arrays... yet!
-	// It just proxies to Environment.Get()
 	var oD *string
 	if overrideDefault != nil {
 		if len(*overrideDefault) > 0 {
@@ -73,8 +77,16 @@ func (env *Environment) GetArray(key string, overrideDefault *[]string) ([]strin
 		}
 	}
 	v, e := env.Get(key, oD)
+	arr := []string{v}
+
+	if env.supportArrays {
+		if strings.Contains(v, ",") {
+			arr = strings.Split(v, ",")
+		}
+	}
+
 	if len(v) > 0 {
-		return []string{v}, e
+		return arr, e
 	}
 	return []string{}, e
 }
