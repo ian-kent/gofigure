@@ -59,7 +59,7 @@ the `prefix` parameter.
 
 Array support for environment variables is currently experimental.
 
-To enable it, set `GOFIGURE_ENV_ARRAYS=1`.
+To enable it, set `GOFIGURE_ENV_ARRAY=1`.
 
 When enabled, the environment variable is split on commas, e.g.
 
