@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -16,10 +17,15 @@ import (
 )
 
 // Debug controls log output
-var Debug = true
+var Debug = false
 var _ = func() {
-	sources.Debug = Debug
+	env := os.Getenv("GOFIGURE_DEBUG")
+	if len(env) > 0 {
+		Debug, _ = strconv.ParseBool(env)
+	}
+
 	sources.Logger = printf
+	sources.Debug = Debug
 }
 
 func printf(message string, args ...interface{}) {
