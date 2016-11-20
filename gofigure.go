@@ -16,7 +16,7 @@ import (
 )
 
 // Debug controls log output
-var Debug = false
+var Debug = true
 var _ = func() {
 	sources.Debug = Debug
 	sources.Logger = printf
@@ -242,32 +242,32 @@ func (gfg *gofiguration) initSources() error {
 
 func (gfg *gofiguration) registerFields() error {
 	for _, gfi := range gfg.fields {
-		for _, o := range gfg.order {
-			kn := gfi.field
-			if k, ok := gfi.keys[o]; ok {
-				kn = k
-			}
+		kn := gfi.field
 
-			gfg.printf("Registering '%s' for source '%s' with key '%s'", gfi.field, o, kn)
-			var err error
-			switch gfi.goField.Type.Kind() {
-			case reflect.Struct:
-				gfg.printf("Registering as struct type")
-				// TODO do shit
-				sGfg, err := parseStruct(gfi.goValue)
-				if err != nil {
-					return err
-				}
-				sGfg.apply(gfg)
-				gfi.inner = sGfg
-			default:
-				gfg.printf("Registering as default type")
-				err = Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
-			}
-
+		var err error
+		switch gfi.goField.Type.Kind() {
+		case reflect.Struct:
+			gfg.printf("Registering as struct type")
+			// TODO do shit
+			sGfg, err := parseStruct(gfi.goValue)
 			if err != nil {
 				return err
 			}
+			sGfg.apply(gfg)
+			gfi.inner = sGfg
+		default:
+			gfg.printf("Registering as default type")
+			for _, o := range gfg.order {
+				gfg.printf("Registering '%s' for source '%s' with key '%s'", gfi.field, o, kn)
+				if k, ok := gfi.keys[o]; ok {
+					kn = k
+				}
+				err = Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
+			}
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 	return nil
