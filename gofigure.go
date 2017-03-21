@@ -18,7 +18,8 @@ import (
 
 // Debug controls log output
 var Debug = false
-var _ = func() (_ struct{}) {
+
+func init() {
 	env := os.Getenv("GOFIGURE_DEBUG")
 	if len(env) > 0 {
 		Debug, _ = strconv.ParseBool(env)
@@ -27,7 +28,7 @@ var _ = func() (_ struct{}) {
 	sources.Logger = printf
 	sources.Debug = Debug
 	return
-}()
+}
 
 func printf(message string, args ...interface{}) {
 	if !Debug {
