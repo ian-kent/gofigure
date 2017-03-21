@@ -18,7 +18,7 @@ import (
 
 // Debug controls log output
 var Debug = false
-var _ = func() {
+var _ = func() (_ struct{}) {
 	env := os.Getenv("GOFIGURE_DEBUG")
 	if len(env) > 0 {
 		Debug, _ = strconv.ParseBool(env)
@@ -26,7 +26,8 @@ var _ = func() {
 
 	sources.Logger = printf
 	sources.Debug = Debug
-}
+	return
+}()
 
 func printf(message string, args ...interface{}) {
 	if !Debug {
@@ -264,10 +265,10 @@ func (gfg *gofiguration) registerFields() error {
 		default:
 			gfg.printf("Registering as default type")
 			for _, o := range gfg.order {
-				gfg.printf("Registering '%s' for source '%s' with key '%s'", gfi.field, o, kn)
 				if k, ok := gfi.keys[o]; ok {
 					kn = k
 				}
+				gfg.printf("Registering '%s' for source '%s' with key '%s'", gfi.field, o, kn)
 				err = Sources[o].Register(kn, "", gfi.keys, gfi.goField.Type)
 			}
 		}
