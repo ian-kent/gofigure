@@ -1,6 +1,7 @@
 package gofigure
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 func ExampleGofigure() {
 	os.Args = []string{"gofigure", "-remote-addr", "localhost:8080"}
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 	type example struct {
 		gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
@@ -40,6 +42,7 @@ func ExampleGofigure() {
 
 func ExampleGofigure_withDefault() {
 	os.Args = []string{"gofigure", "-remote-addr", "localhost:8080"}
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 	type example struct {
 		gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
@@ -70,6 +73,7 @@ func ExampleGofigure_withDefault() {
 
 func ExampleGofigure_withNestedStruct() {
 	os.Args = []string{"gofigure", "-remote-addr", "localhost:8080", "-local-addr", "localhost:49808"}
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 	type example struct {
 		gofigure   interface{} `envPrefix:"BAR" order:"flag,env"`
@@ -139,7 +143,7 @@ type MyConfigFull struct {
 	ArrayStringField []string
 }
 
-func TestparseStruct(t *testing.T) {
+func TestParseStruct(t *testing.T) {
 	Convey("parseStruct should return an error unless given a pointer to a struct", t, func() {
 		info, e := parseStruct(1)
 		So(e, ShouldNotBeNil)
@@ -229,6 +233,7 @@ func TestGofigure(t *testing.T) {
 	Convey("Gofigure should set field values", t, func() {
 		os.Clearenv()
 		os.Args = []string{"gofigure", "-bind-addr", "abcdef"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFoo
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -239,6 +244,7 @@ func TestGofigure(t *testing.T) {
 	Convey("Gofigure should set multiple field values", t, func() {
 		os.Clearenv()
 		os.Args = []string{"gofigure", "-remote-addr", "foo", "-local-addr", "bar"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg2 MyConfigBar
 		err := Gofigure(&cfg2)
 		So(err, ShouldBeNil)
@@ -250,6 +256,7 @@ func TestGofigure(t *testing.T) {
 	Convey("Gofigure should support environment variables", t, func() {
 		os.Clearenv()
 		os.Args = []string{"gofigure"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		os.Setenv("FOO_BIND_ADDR", "bindaddr")
 		var cfg MyConfigFoo
 		err := Gofigure(&cfg)
@@ -261,6 +268,7 @@ func TestGofigure(t *testing.T) {
 	Convey("Gofigure should preserve order", t, func() {
 		os.Clearenv()
 		os.Args = []string{"gofigure", "-bind-addr", "abc"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		os.Setenv("FOO_BIND_ADDR", "def")
 		var cfg MyConfigFoo
 		err := Gofigure(&cfg)
@@ -270,6 +278,7 @@ func TestGofigure(t *testing.T) {
 
 		os.Clearenv()
 		os.Args = []string{"gofigure", "-remote-addr", "abc"}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		os.Setenv("BAR_REMOTE_ADDR", "def")
 		var cfg2 MyConfigBar
 		err = Gofigure(&cfg2)
@@ -288,6 +297,7 @@ func TestBoolField(t *testing.T) {
 			"gofigure",
 			"-bool-field", "true",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -301,6 +311,7 @@ func TestBoolField(t *testing.T) {
 			"gofigure",
 			"-bool-field", "false",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -313,6 +324,7 @@ func TestBoolField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		os.Setenv("BOOL_FIELD", "true")
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
@@ -326,6 +338,7 @@ func TestBoolField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		os.Setenv("BOOL_FIELD", "false")
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
@@ -339,6 +352,7 @@ func TestBoolField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -360,6 +374,7 @@ func TestIntField(t *testing.T) {
 			"-int32-field", "33",
 			"-int64-field", "81",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -380,6 +395,7 @@ func TestIntField(t *testing.T) {
 			"-int32-field", "-33",
 			"-int64-field", "-81",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -401,6 +417,7 @@ func TestIntField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -417,6 +434,7 @@ func TestIntField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		os.Setenv("INT_FIELD", "-123")
 		os.Setenv("INT8_FIELD", "-2")
 		os.Setenv("INT16_FIELD", "-10")
@@ -438,6 +456,7 @@ func TestIntField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -463,6 +482,7 @@ func TestUintField(t *testing.T) {
 			"-uint32-field", "33",
 			"-uint64-field", "81",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -484,6 +504,7 @@ func TestUintField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -500,6 +521,7 @@ func TestUintField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -522,6 +544,7 @@ func TestArrayField(t *testing.T) {
 			"-array-string-field", "foo",
 			"-array-string-field", "bar",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -538,6 +561,7 @@ func TestArrayField(t *testing.T) {
 		os.Args = []string{
 			"gofigure",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)
@@ -551,6 +575,7 @@ func TestArrayField(t *testing.T) {
 			"-array-int-field", "1",
 			"-array-int-field", "2",
 		}
+		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		var cfg MyConfigFull
 		err := Gofigure(&cfg)
 		So(err, ShouldBeNil)

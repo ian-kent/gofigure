@@ -2,7 +2,6 @@ package sources
 
 import (
 	"flag"
-	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -44,7 +43,7 @@ func (cl *CommandLine) Init(args map[string]string) error {
 	cl.flags = make(map[string]*string)
 	cl.arrayFlags = make(map[string]*arrayValue)
 	cl.oldCl = flag.CommandLine
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	// flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	return nil
 }
 
