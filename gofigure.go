@@ -228,7 +228,9 @@ func (gfg *gofiguration) parseFields(v reflect.Value, t reflect.Type) {
 		if len(tag) > 0 {
 			gfi.keys = getStructTags(string(tag))
 		}
-		gfg.fields[f] = gfi
+		if gfi.keys["gofigure"] != "ignore" {
+			gfg.fields[f] = gfi
+		}
 	}
 }
 
